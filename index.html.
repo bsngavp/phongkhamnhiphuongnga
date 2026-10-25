@@ -1,0 +1,139 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phòng khám Nhi Phương Nga</title>
+<style>
+body{font-family:Arial;background:#f1f8f5;margin:0;color:#234}
+header{background:#16845b;color:white;padding:22px;text-align:center}
+main{max-width:700px;margin:auto;padding:15px}
+.card{background:white;padding:18px;margin:12px 0;border-radius:14px;box-shadow:0 2px 8px #ddd}
+h2{color:#16845b}
+input,select,textarea,button{box-sizing:border-box;width:100%;padding:12px;margin:7px 0;border:1px solid #ccc;border-radius:8px;font-size:16px}
+button{background:#16845b;color:white;border:0;font-weight:bold}
+nav{display:flex;gap:6px;flex-wrap:wrap}
+nav button{width:auto;flex:1}
+.item{border-bottom:1px solid #ddd;padding:10px 0}
+small{color:#667}
+</style>
+</head>
+<body>
+<header>
+<h1>🌿 Phòng khám Nhi Phương Nga</h1>
+<p>Đặt lịch khám • Quản lý lịch hẹn</p>
+</header>
+
+<main>
+<nav>
+<button onclick="show('booking')">Đặt lịch</button>
+<button onclick="show('list')">Lịch hẹn</button>
+<button onclick="show('setting')">Cài đặt</button>
+</nav>
+
+<section id="booking" class="card">
+<h2>📅 Đặt lịch khám</h2>
+<form id="form">
+<label>Họ tên trẻ</label>
+<input id="child" required>
+<label>Người đưa trẻ đến khám</label>
+<input id="parent" required>
+<label>Số điện thoại</label>
+<input id="phone" type="tel" required>
+<label>Ngày khám</label>
+<input id="date" type="date" required>
+<label>Giờ khám</label>
+<input id="time" type="time" required>
+<label>Lý do khám</label>
+<textarea id="reason"></textarea>
+<button>Đăng ký lịch khám</button>
+</form>
+<p id="result"></p>
+</section>
+
+<section id="list" class="card" hidden>
+<h2>📋 Lịch hẹn</h2>
+<div id="appointments"></div>
+</section>
+
+<section id="setting" class="card" hidden>
+<h2>⚙️ Cài đặt phòng khám</h2>
+<label>Giờ bắt đầu khám</label>
+<input id="start" type="time" value="07:30">
+<label>Phút dự kiến mỗi lượt</label>
+<input id="minutes" type="number" value="15" min="5">
+<button onclick="saveSettings()">Lưu cài đặt</button>
+<p id="saved"></p>
+</section>
+
+<section class="card">
+<small>Website demo. Dữ liệu lưu trên trình duyệt của thiết bị này.</small>
+</section>
+</main>
+
+<script>
+const key="phuongnga_demo";
+let data=JSON.parse(localStorage.getItem(key)||"[]");
+
+function show(id){
+["booking","list","setting"].forEach(x=>{
+document.getElementById(x).hidden=x!==id;
+});
+if(id==="list") render();
+}
+
+function save(){
+localStorage.setItem(key,JSON.stringify(data));
+}
+
+document.getElementById("form").onsubmit=function(e){
+e.preventDefault();
+let date=document.getElementById("date").value;
+let day=data.filter(x=>x.date===date).length+1;
+let item={
+id:Date.now(),
+queue:day,
+child:child.value,
+parent:parent.value,
+phone:phone.value,
+date:date,
+time:time.value,
+reason:reason.value,
+status:"Chờ khám"
+};
+data.push(item);
+save();
+result.innerHTML="Đăng ký demo thành công. Số thứ tự: <b>"+day+"</b>";
+this.reset();
+};
+
+function render(){
+appointments.innerHTML=data.length?"":"Chưa có lịch hẹn";
+data.slice().reverse().forEach(x=>{
+let div=document.createElement("div");
+div.className="item";
+div.innerHTML="<b>STT "+x.queue+" — "+x.child+"</b><br>"+
+x.date+" • "+x.time+"<br>"+x.phone+"<br>"+
+"Trạng thái: "+x.status;
+let sel=document.createElement("select");
+["Chờ khám","Đang khám","Đã khám","Hủy"].forEach(s=>{
+let o=document.createElement("option");
+o.text=s;o.selected=s===x.status;sel.add(o);
+});
+sel.onchange=()=>{x.status=sel.value;save();render();};
+div.appendChild(sel);
+appointments.appendChild(div);
+});
+}
+
+function saveSettings(){
+localStorage.setItem("start",start.value);
+localStorage.setItem("minutes",minutes.value);
+saved.textContent="Đã lưu cài đặt trên thiết bị này.";
+}
+start.value=localStorage.getItem("start")||"07:30";
+minutes.value=localStorage.getItem("minutes")||15;
+</script>
+</body>
+</html>
